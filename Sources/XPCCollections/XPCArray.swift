@@ -7,21 +7,26 @@
 
 import Foundation
 
+/// An `XPCArray` wraps an `xpc_array_t`, providing `Collection` conformance
+/// and type-safe subscript helpers
 public struct XPCArray: XPCHolding {
     public static let xpcType: xpc_type_t = XPC_TYPE_ARRAY
     
+    /// The underlying `xpc_array_t`
     public let rawValue: xpc_object_t
     
-     public init(rawValue: xpc_object_t) {
+    public init(rawValue: xpc_object_t) {
         self.rawValue = rawValue
     }
     
-     public init() {
+    /// Initializes an `XPCArray` with an empty `xpc_array_t`
+    public init() {
         self.init(rawValue: xpc_array_create(nil, 0))
     }
 }
 
 public extension XPCArray {
+    /// Direct mapping to `xpc_array_get_value`/`xpc_array_set_value`, with no type coercion
     subscript(_ key: Int) -> xpc_object_t {
         get {
             xpc_array_get_value(rawValue, key)
@@ -31,6 +36,8 @@ public extension XPCArray {
         }
     }
     
+    /// Abstraction over the raw subscript methods, supporting coercion to any `XPCConertible` type.
+    /// Coercing to a mismatched type results in a `preconditionFailure`. For built-in safety, use the `[safe:]` subscript.
     subscript<P: XPCConvertible>(_ key: Int) -> P {
         get {
             let value = self[key]
@@ -44,6 +51,8 @@ public extension XPCArray {
         }
     }
     
+    /// Abstraction over the raw subscript methods, supporting coercion to any `XPCConertible` type.
+    /// Coercing to a mismatched type results in a null value, which is why this subscript has an optional type.
     subscript<P: XPCConvertible>(safe key: Int) -> P? {
         get {
             let value = self[key]
@@ -62,11 +71,12 @@ public extension XPCArray {
 //xpc_copy_short_description(xpc_object_t object);
 
 extension XPCArray {
-     public var count: Int {
+    /// The length of the array, as reported by `xpc_array_get_count`
+    public var count: Int {
         xpc_array_get_count(rawValue)
     }
     
-     public var isEmpty: Bool {
+    public var isEmpty: Bool {
         count == 0
     }
 }
@@ -132,15 +142,15 @@ extension XPCArray: Sequence {
 }
 
 extension XPCArray: Collection {
-     public func index(after i: Int) -> Int {
+    public func index(after i: Int) -> Int {
         i + 1
     }
     
-     public var startIndex: Int {
+    public var startIndex: Int {
         0
     }
     
-     public var endIndex: Int {
+    public var endIndex: Int {
         count
     }
 }
@@ -154,7 +164,7 @@ extension XPCArray: RandomAccessCollection {
 }
 
 extension XPCArray {
-     public func append(_ value: xpc_object_t) {
+    public func append(_ value: xpc_object_t) {
         xpc_array_append_value(rawValue, value)
     }
     

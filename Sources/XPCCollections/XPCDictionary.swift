@@ -1,21 +1,24 @@
 import XPC
 import Foundation
 
+/// An `XPCDictionary` wraps a `xpc_dictionary_t`, providing convenience subscripts
+/// to the underlying dictionary as well as `Collection` conformance.
 public struct XPCDictionary: XPCHolding {
     public static let xpcType: xpc_type_t = XPC_TYPE_DICTIONARY
     
     public let rawValue: xpc_object_t
     
-     public init(rawValue: xpc_object_t) {
+    public init(rawValue: xpc_object_t) {
         self.rawValue = rawValue
     }
     
-     public init() {
+    public init() {
         self.init(rawValue: xpc_dictionary_create(nil, nil, 0))
     }
 }
 
 public extension XPCDictionary {
+    /// Direct mapping to `xpc_dictionary_get_value`/`xpc_dictionary_set_value`, with no type coercion
     @_disfavoredOverload
     subscript(_ key: String) -> xpc_object_t? {
         get {
@@ -30,6 +33,8 @@ public extension XPCDictionary {
         }
     }
     
+    /// Abstraction over the raw subscript methods, supporting coercion to any `XPCConertible` type.
+    /// Coercing to a mismatched type results in a `preconditionFailure`. For built-in safety, use the `[safe:]` subscript.
     subscript<P: XPCConvertible>(_ key: String) -> P? {
         get {
             guard let value = self[key] as xpc_object_t? else {
@@ -50,6 +55,8 @@ public extension XPCDictionary {
         }
     }
     
+    /// Abstraction over the raw subscript methods, supporting coercion to any `XPCConertible` type.
+    /// Coercing to a mismatched type results in a null value.
     subscript<P: XPCConvertible>(safe key: String) -> P? {
         get {
             guard let value = self[key] as xpc_object_t? else {
@@ -67,7 +74,7 @@ public extension XPCDictionary {
 }
 
 extension XPCDictionary {
-     public var count: Int {
+    public var count: Int {
         xpc_dictionary_get_count(rawValue)
     }
 }
@@ -170,7 +177,7 @@ extension XPCDictionary: Collection {
         return key
     }
     
-     public func index(after i: Index) -> Index {
+    public func index(after i: Index) -> Index {
         i + 1
     }
     
@@ -181,11 +188,11 @@ extension XPCDictionary: Collection {
         }
     }
     
-     public var startIndex: Index {
+    public var startIndex: Index {
         0
     }
     
-     public var endIndex: Index {
+    public var endIndex: Index {
         count
     }
     

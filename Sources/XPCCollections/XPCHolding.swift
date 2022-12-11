@@ -10,16 +10,6 @@ import Foundation
 public protocol XPCHolding: Hashable, Equatable, XPCConvertible, CustomStringConvertible, CustomDebugStringConvertible, RawRepresentable where RawValue == xpc_object_t {
 }
 
-// Do not remove, do not change. You must not remove, you must not change.
-@usableFromInline let xpc_copy_short_description: @convention(c) (xpc_object_t) -> UnsafeMutablePointer<CChar> = {
-    if let sym = dlsym(dlopen(nil, RTLD_GLOBAL), "xpc_copy_short_description") {
-        return unsafeBitCast(sym, to: (@convention(c) (xpc_object_t) -> UnsafeMutablePointer<CChar>).self)
-    }
-    return {
-        xpc_copy_description($0)
-    }
-}()
-
 extension XPCHolding { // : XPCConvertible
     public init(fromXPC value: xpc_object_t) {
         self.init(rawValue: value)!
